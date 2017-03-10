@@ -5,8 +5,7 @@ class DynamicController {
         this.materials = materials;
         this.refreshTime = refreshTime;
         this.cellSize = cellSize;
-        this.stable = false;
-        this.dynamic;
+        this.dynamic = null;
         this.fillBoard();
     }
     fillBoard() {
@@ -34,8 +33,9 @@ class DynamicController {
         this.startDynamic();
     }
     startDynamic() {
-
-        this.dynamic = setInterval(this.continueDynamic, this.refreshTime, this);
+        if (this.dynamic === null) {
+            this.dynamic = setInterval(this.continueDynamic, this.refreshTime, this);
+        }
     }
     redrawBoard(dynamic) {
 
@@ -50,77 +50,58 @@ class DynamicController {
     }
     pauseDynamic() {
         clearInterval(this.dynamic);
+        this.dynamic = null;
     }
     continueDynamic(dynamic) {
-        /*if (dynamic.stable === true) {
-            console.log("Estable");
-            clearInterval(dynamic.dynamic);
-        } else {*/
-        dynamic.stable = true;
         for (let i = 0; i < dynamic.boardArray.length; i++) {
-            if (dynamic.boardArray[i - 1] !== undefined) {
-                for (let j = 0; j < dynamic.boardArray[i].length; j++) {
-                    if (dynamic.boardArray[i][j].moveable) {
-                        if (dynamic.boardArray[i - 1][j].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j].moveable) {
-                            dynamic.stable = false;
-                            const aux = dynamic.boardArray[i][j];
-                            dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j];
-                            dynamic.boardArray[i - 1][j] = aux;
-
-                        } else if (dynamic.boardArray[i - 1][j - 1] !== undefined && dynamic.boardArray[i - 1][j + 1] !== undefined) {
-                            let preferencialFall = Math.ceil(Math.random() * 2);
-                            if (preferencialFall == 2) {
-                                if (dynamic.boardArray[i - 1][j - 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j - 1].moveable) {
-                                    dynamic.stable = false;
-                                    const aux = dynamic.boardArray[i][j];
-                                    dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j - 1];
-                                    dynamic.boardArray[i - 1][j - 1] = aux;
-
+            for (let j = 0; j < dynamic.boardArray[i].length; j++) {
+                if (dynamic.boardArray[i][j].moveable) {
+                    let posibleMoves = [
+                        [],
+                        [],
+                        [],
+                    ];
+                    let neightbours = dynamic.boardArray[i][j].checkSurrounding(dynamic.boardArray, i, j);
+                    for (let [key, value] of Object.entries(neightbours)) {
+                        for (let [innerKey, innerValue] of Object.entries(neightbours[key])) {
+                            if (neightbours[key][innerKey] === true) {
+                                if (parseInt(key) == -1) {
+                                    posibleMoves[0].push([key, innerKey]);
+                                } else if (parseInt(key) == 1) {
+                                    posibleMoves[1].push([key, innerKey]);
+                                } else if (parseInt(key) == 0) {
+                                    posibleMoves[2].push([key, innerKey]);
                                 }
-                            } else if (preferencialFall == 1) {
-                                if (dynamic.boardArray[i - 1][j + 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j + 1].moveable) {
-                                    dynamic.stable = false;
-                                    const aux = dynamic.boardArray[i][j];
-                                    dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j + 1];
-                                    dynamic.boardArray[i - 1][j + 1] = aux;
-
-                                }
-                            }
-                        } else if (dynamic.boardArray[i - 1][j - 1] !== undefined) {
-                            if (dynamic.boardArray[i - 1][j - 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j - 1].moveable) {
-                                dynamic.stable = false;
-                                const aux = dynamic.boardArray[i][j];
-                                dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j - 1];
-                                dynamic.boardArray[i - 1][j - 1] = aux;
-
-                            }
-                        } else if (dynamic.boardArray[i - 1][j + 1] !== undefined) {
-                            if (dynamic.boardArray[i - 1][j + 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j + 1].moveable) {
-                                dynamic.stable = false;
-                                const aux = dynamic.boardArray[i][j];
-                                dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j + 1];
-                                dynamic.boardArray[i - 1][j + 1] = aux;
 
                             }
                         }
                     }
-                    let chance = Math.random();
-                    if (chance >= 0.99999) {
-                        dynamic.boardArray[i][j].density += 10;
-                        console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
+                    for (let k = 0; k < posibleMoves.length; k++) {
+                        if (posibleMoves[k].length > 0) {
+                            let move = posibleMoves[k][Math.floor(Math.random() * posibleMoves[k].length)];
+                            const aux = dynamic.boardArray[i][j];
+                            dynamic.boardArray[i][j] = dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])];
+                            dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])] = aux;
+                            break;
+                        }
                     }
-                    if (chance <= 0.00001) {
-                        dynamic.boardArray[i][j].density -= 10;
-                        console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
-                    }
-                    if (chance <= 0.50001 && chance >= 0.49999) {
-                        dynamic.boardArray[i][j].moveable = !dynamic.boardArray[i][j].moveable;
-                        console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].moveable);
-                    }
+
+                }
+                let chance = Math.random();
+                if (chance >= 0.99999) {
+                    dynamic.boardArray[i][j].density += 1;
+                    console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
+                }
+                if (chance <= 0.00001) {
+                    dynamic.boardArray[i][j].density -= 1;
+                    console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
+                }
+                if (chance <= 0.50001 && chance >= 0.49999) {
+                    dynamic.boardArray[i][j].moveable = !dynamic.boardArray[i][j].moveable;
+                    console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].moveable);
                 }
 
             }
-
         }
         dynamic.redrawBoard(dynamic);
     }

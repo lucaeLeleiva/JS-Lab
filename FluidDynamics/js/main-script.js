@@ -12,8 +12,8 @@ let dynamicController;
 
 function loadScript() {
     const board = document.getElementById('board');
-    const refreshTime = 500;
-    const cellSize = '3px';
+    const refreshTime = 100;
+    const cellSize = '7px';
     const material1 = new Material('red', 0, false);
     const material2 = new Material('blue', Math.ceil(Math.random() * 10), true);
     const material3 = new Material('green', Math.ceil(Math.random() * 10), true);
