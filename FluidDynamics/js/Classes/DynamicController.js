@@ -52,6 +52,7 @@ class DynamicController {
         clearInterval(this.dynamic);
     }
     continueDynamic(dynamic) {
+        const performance1 = performance.now();
         /*if (dynamic.stable === true) {
             console.log("Estable");
             clearInterval(dynamic.dynamic);
@@ -123,5 +124,7 @@ class DynamicController {
 
         }
         dynamic.redrawBoard(dynamic);
+        const performance2 = performance.now();
+        console.log('loopTime: ' + (performance2 - performance1));
     }
 }
