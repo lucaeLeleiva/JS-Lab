@@ -79,13 +79,10 @@ class DynamicController {
                                 if (neightbours[key][innerKey] === true) {
                                     if (parseInt(key) === -1) {
                                         posibleMoves[0][posibleMoves[0].length] = [key, innerKey];
-                                        //posibleMoves[0].push();
                                     } else if (parseInt(key) === 1) {
                                         posibleMoves[1][posibleMoves[1].length] = [key, innerKey];
-                                        //posibleMoves[1].push([key, innerKey]);
                                     } else if (parseInt(key) === 0) {
                                         posibleMoves[2][posibleMoves[2].length] = [key, innerKey];
-                                        //posibleMoves[2].push([key, innerKey]);
                                     }
                                     hasPosibleMoves = true;
 
