@@ -7,6 +7,9 @@ class ControlPanelController {
         this.instatiateDiv();
     }
     instatiateDiv() {
+        while (this.controlPanelStatsDiv.firstChild){
+            this.controlPanelStatsDiv.removeChild(this.controlPanelStatsDiv.firstChild);
+        }
         this.material.forEach(function(element) {
             let pre = document.createElement('pre');
             let colorName = document.createElement('span');
