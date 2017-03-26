@@ -1,12 +1,14 @@
+'use strict';
+
 class DynamicController {
-    constructor(board, materials, refreshTime, cellSize) {
+    constructor(board, materials, controlPanel, refreshTime, cellSize) {
         this.boardArray = [];
         this.board = board;
         this.materials = materials;
         this.refreshTime = refreshTime;
         this.cellSize = cellSize;
-        this.stable = false;
-        this.dynamic;
+        this.dynamic = null;
+        this.controlPanel = controlPanel;
         this.fillBoard();
     }
     fillBoard() {
@@ -14,114 +16,110 @@ class DynamicController {
             this.board.removeChild(this.board.firstChild);
         }
         const size = this.board.getAttribute('data-size');
+        this.board.style.width = ((size * this.cellSize) + 'px');
+        this.board.style.margin = '0px';
+        this.board.style.float = 'left';
         for (let i = 0; i < size; i++) {
             this.boardArray[i] = [];
-            let row = document.createElement('div');
+            const row = document.createElement('div');
             row.style.margin = '0px';
-            row.style.width = '100%';
-            row.style.height = this.cellSize;
+            row.style.width = ((size * this.cellSize)+'px');
+            row.style.height = this.cellSize+'px';
             for (let j = 0; j < size; j++) {
-                let index = Math.floor(Math.random() * this.materials.length);
-                let material = this.materials[index];
-                let id = i + '-' + j;
-                let cell = new Cell(id, material.color, this.cellSize);
-                row.appendChild(cell.dom);
-                this.boardArray[i][j] = material;
+                const index = Math.floor(Math.random() * this.materials.length);
+                const material = this.materials[index];
+                const cell = new Cell(i, j, material, this.cellSize);
+                row.appendChild(cell.dom());
+                this.boardArray[i][j] = cell;
             }
             this.board.appendChild(row);
         }
-
         this.startDynamic();
     }
     startDynamic() {
-
-        this.dynamic = setInterval(this.continueDynamic, this.refreshTime, this);
+        if (this.dynamic === null) {
+            this.controlPanel.updateMaterialShowingStats();
+            this.dynamic = setInterval(this.continueDynamic, this.refreshTime, this);
+        }
     }
     redrawBoard(dynamic) {
-
-        for (let i = 0; i < dynamic.boardArray.length; i++) {
-            for (let j = 0; j < dynamic.boardArray[i].length; j++) {
-                let id = i + '-' + j;
-                let cell = document.getElementById(id);
-                let material = dynamic.boardArray[i][j];
-                cell.style.backgroundColor = material.color;
+        const boardArrayLength = dynamic.boardArray.length;
+        for (let i = 0; i < boardArrayLength; i++) {
+            const boardArrayRowLength = dynamic.boardArray[i].length;
+            for (let j = 0; j < boardArrayRowLength; j++) {
+                if (dynamic.board.children[i].children[j].style.backgroundColor !== dynamic.boardArray[i][j].material.color){
+                    dynamic.board.children[i].children[j].style.backgroundColor = dynamic.boardArray[i][j].material.color;
+                }
             }
         }
     }
     pauseDynamic() {
         clearInterval(this.dynamic);
+        this.dynamic = null;
     }
     continueDynamic(dynamic) {
         const performance1 = performance.now();
-        /*if (dynamic.stable === true) {
-            console.log("Estable");
-            clearInterval(dynamic.dynamic);
-        } else {*/
-        dynamic.stable = true;
-        for (let i = 0; i < dynamic.boardArray.length; i++) {
-            if (dynamic.boardArray[i - 1] !== undefined) {
-                for (let j = 0; j < dynamic.boardArray[i].length; j++) {
-                    if (dynamic.boardArray[i][j].moveable) {
-                        if (dynamic.boardArray[i - 1][j].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j].moveable) {
-                            dynamic.stable = false;
-                            const aux = dynamic.boardArray[i][j];
-                            dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j];
-                            dynamic.boardArray[i - 1][j] = aux;
-
-                        } else if (dynamic.boardArray[i - 1][j - 1] !== undefined && dynamic.boardArray[i - 1][j + 1] !== undefined) {
-                            let preferencialFall = Math.ceil(Math.random() * 2);
-                            if (preferencialFall == 2) {
-                                if (dynamic.boardArray[i - 1][j - 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j - 1].moveable) {
-                                    dynamic.stable = false;
-                                    const aux = dynamic.boardArray[i][j];
-                                    dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j - 1];
-                                    dynamic.boardArray[i - 1][j - 1] = aux;
-
-                                }
-                            } else if (preferencialFall == 1) {
-                                if (dynamic.boardArray[i - 1][j + 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j + 1].moveable) {
-                                    dynamic.stable = false;
-                                    const aux = dynamic.boardArray[i][j];
-                                    dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j + 1];
-                                    dynamic.boardArray[i - 1][j + 1] = aux;
+        const boardArrayLength = dynamic.boardArray.length;
+        for (let i = 0; i < boardArrayLength; i+=2) {
+            const boardArrayRowLength = dynamic.boardArray[i].length;
+            for (let j = 0; j < boardArrayRowLength; j+=2) {
+                const cell = dynamic.boardArray[i][j];
+                const material = cell.material;
+                if (material.moveable) {
+                    let posibleMoves = [
+                        [],
+                        [],
+                        [],
+                    ];
+                    const neightbours = cell.checkSurrounding(dynamic.boardArray);
+                    if (neightbours !== false){
+                        let hasPosibleMoves = false;
+                        for (let [key, value] of Object.entries(neightbours)) {
+                            for (let [innerKey, innerValue] of Object.entries(neightbours[key])) {
+                                if (neightbours[key][innerKey] === true) {
+                                    if (parseInt(key) === -1) {
+                                        posibleMoves[0][posibleMoves[0].length] = [key, innerKey];
+                                        //posibleMoves[0].push();
+                                    } else if (parseInt(key) === 1) {
+                                        posibleMoves[1][posibleMoves[1].length] = [key, innerKey];
+                                        //posibleMoves[1].push([key, innerKey]);
+                                    } else if (parseInt(key) === 0) {
+                                        posibleMoves[2][posibleMoves[2].length] = [key, innerKey];
+                                        //posibleMoves[2].push([key, innerKey]);
+                                    }
+                                    hasPosibleMoves = true;
 
                                 }
                             }
-                        } else if (dynamic.boardArray[i - 1][j - 1] !== undefined) {
-                            if (dynamic.boardArray[i - 1][j - 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j - 1].moveable) {
-                                dynamic.stable = false;
-                                const aux = dynamic.boardArray[i][j];
-                                dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j - 1];
-                                dynamic.boardArray[i - 1][j - 1] = aux;
-
-                            }
-                        } else if (dynamic.boardArray[i - 1][j + 1] !== undefined) {
-                            if (dynamic.boardArray[i - 1][j + 1].isDenser(dynamic.boardArray[i][j]) && dynamic.boardArray[i - 1][j + 1].moveable) {
-                                dynamic.stable = false;
-                                const aux = dynamic.boardArray[i][j];
-                                dynamic.boardArray[i][j] = dynamic.boardArray[i - 1][j + 1];
-                                dynamic.boardArray[i - 1][j + 1] = aux;
-
+                        }
+                        if (hasPosibleMoves === true) {
+                            for (let k = 0; k < posibleMoves.length; k++) {
+                                if (posibleMoves[k].length > 0) {
+                                    const move = posibleMoves[k][Math.floor(Math.random() * posibleMoves[k].length)];
+                                    const aux = material;
+                                    cell.material = dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])].material;
+                                    dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])].material = aux;
+                                    break;
+                                }
                             }
                         }
                     }
-                    let chance = Math.random();
-                    if (chance >= 0.99999) {
-                        dynamic.boardArray[i][j].density += 10;
-                        console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
-                    }
-                    if (chance <= 0.00001) {
-                        dynamic.boardArray[i][j].density -= 10;
-                        console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
-                    }
-                    if (chance <= 0.50001 && chance >= 0.49999) {
-                        dynamic.boardArray[i][j].moveable = !dynamic.boardArray[i][j].moveable;
-                        console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].moveable);
-                    }
+                }
+                const chance = Math.random();
+                if (chance >= 0.99999) {
+                    material.density += 1;
+                    dynamic.controlPanel.updateMaterialShowingStats();
+                }
+                if (chance <= 0.00001) {
+                    material.density -= 1;
+                    dynamic.controlPanel.updateMaterialShowingStats();
+                }
+                if (chance <= 0.50001 && chance >= 0.49999) {
+                    material.moveable = !material.moveable;
+                    dynamic.controlPanel.updateMaterialShowingStats();
                 }
 
             }
-
         }
         dynamic.redrawBoard(dynamic);
         const performance2 = performance.now();
