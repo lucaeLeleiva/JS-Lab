@@ -88,6 +88,7 @@ class DynamicController {
                                         //posibleMoves[2].push([key, innerKey]);
                                     }
                                     hasPosibleMoves = true;
+
                                 }
                             }
                         }
