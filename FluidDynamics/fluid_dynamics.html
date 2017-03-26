@@ -7,10 +7,14 @@
 </head>
 
 <body>
-    <input type="button" onclick="dynamicController.pauseDynamic()" value="Pausar" />
-    <input type="button" onclick="dynamicController.startDynamic()" value="Resumir" />
-    <input type="button" onclick="loadScript()" value="Reiniciar" />
-    <div id="board" data-size="100"></div>
+
+    <div id="board" data-size="200"></div>
+    <div id="control-panel" style="float: left;margin: 5px;">
+        <input type="button" onclick="dynamicController.pauseDynamic()" value="Pausar" />
+        <input type="button" onclick="dynamicController.startDynamic()" value="Resumir" />
+        <input type="button" onclick="loadScript()" value="Reiniciar" />
+        <div id="stats-shower"></div>
+    </div>
 </body>
 
 </html>

@@ -1,11 +1,14 @@
+'use strict';
+
 class DynamicController {
-    constructor(board, materials, refreshTime, cellSize) {
+    constructor(board, materials, controlPanel, refreshTime, cellSize) {
         this.boardArray = [];
         this.board = board;
         this.materials = materials;
         this.refreshTime = refreshTime;
         this.cellSize = cellSize;
         this.dynamic = null;
+        this.controlPanel = controlPanel;
         this.fillBoard();
     }
     fillBoard() {
@@ -13,38 +16,40 @@ class DynamicController {
             this.board.removeChild(this.board.firstChild);
         }
         const size = this.board.getAttribute('data-size');
+        this.board.style.width = ((size * this.cellSize) + 'px');
+        this.board.style.margin = '0px';
+        this.board.style.float = 'left';
         for (let i = 0; i < size; i++) {
             this.boardArray[i] = [];
-            let row = document.createElement('div');
+            const row = document.createElement('div');
             row.style.margin = '0px';
-            row.style.width = '100%';
-            row.style.height = this.cellSize;
+            row.style.width = ((size * this.cellSize)+'px');
+            row.style.height = this.cellSize+'px';
             for (let j = 0; j < size; j++) {
-                let index = Math.floor(Math.random() * this.materials.length);
-                let material = this.materials[index];
-                let id = i + '-' + j;
-                let cell = new Cell(id, material.color, this.cellSize);
-                row.appendChild(cell.dom);
-                this.boardArray[i][j] = material;
+                const index = Math.floor(Math.random() * this.materials.length);
+                const material = this.materials[index];
+                const cell = new Cell(i, j, material, this.cellSize);
+                row.appendChild(cell.dom());
+                this.boardArray[i][j] = cell;
             }
             this.board.appendChild(row);
         }
-
         this.startDynamic();
     }
     startDynamic() {
         if (this.dynamic === null) {
+            this.controlPanel.updateMaterialShowingStats();
             this.dynamic = setInterval(this.continueDynamic, this.refreshTime, this);
         }
     }
     redrawBoard(dynamic) {
-
-        for (let i = 0; i < dynamic.boardArray.length; i++) {
-            for (let j = 0; j < dynamic.boardArray[i].length; j++) {
-                let id = i + '-' + j;
-                let cell = document.getElementById(id);
-                let material = dynamic.boardArray[i][j];
-                cell.style.backgroundColor = material.color;
+        const boardArrayLength = dynamic.boardArray.length;
+        for (let i = 0; i < boardArrayLength; i++) {
+            const boardArrayRowLength = dynamic.boardArray[i].length;
+            for (let j = 0; j < boardArrayRowLength; j++) {
+                if (dynamic.board.children[i].children[j].style.backgroundColor !== dynamic.boardArray[i][j].material.color){
+                    dynamic.board.children[i].children[j].style.backgroundColor = dynamic.boardArray[i][j].material.color;
+                }
             }
         }
     }
@@ -53,56 +58,70 @@ class DynamicController {
         this.dynamic = null;
     }
     continueDynamic(dynamic) {
-        for (let i = 0; i < dynamic.boardArray.length; i++) {
-            for (let j = 0; j < dynamic.boardArray[i].length; j++) {
-                if (dynamic.boardArray[i][j].moveable) {
+        const performance1 = performance.now();
+        const boardArrayLength = dynamic.boardArray.length;
+        for (let i = 0; i < boardArrayLength; i+=2) {
+            const boardArrayRowLength = dynamic.boardArray[i].length;
+            for (let j = 0; j < boardArrayRowLength; j+=2) {
+                const cell = dynamic.boardArray[i][j];
+                const material = cell.material;
+                if (material.moveable) {
                     let posibleMoves = [
                         [],
                         [],
                         [],
                     ];
-                    let neightbours = dynamic.boardArray[i][j].checkSurrounding(dynamic.boardArray, i, j);
-                    for (let [key, value] of Object.entries(neightbours)) {
-                        for (let [innerKey, innerValue] of Object.entries(neightbours[key])) {
-                            if (neightbours[key][innerKey] === true) {
-                                if (parseInt(key) == -1) {
-                                    posibleMoves[0].push([key, innerKey]);
-                                } else if (parseInt(key) == 1) {
-                                    posibleMoves[1].push([key, innerKey]);
-                                } else if (parseInt(key) == 0) {
-                                    posibleMoves[2].push([key, innerKey]);
+                    const neightbours = cell.checkSurrounding(dynamic.boardArray);
+                    if (neightbours !== false){
+                        let hasPosibleMoves = false;
+                        for (let [key, value] of Object.entries(neightbours)) {
+                            for (let [innerKey, innerValue] of Object.entries(neightbours[key])) {
+                                if (neightbours[key][innerKey] === true) {
+                                    if (parseInt(key) === -1) {
+                                        posibleMoves[0][posibleMoves[0].length] = [key, innerKey];
+                                        //posibleMoves[0].push();
+                                    } else if (parseInt(key) === 1) {
+                                        posibleMoves[1][posibleMoves[1].length] = [key, innerKey];
+                                        //posibleMoves[1].push([key, innerKey]);
+                                    } else if (parseInt(key) === 0) {
+                                        posibleMoves[2][posibleMoves[2].length] = [key, innerKey];
+                                        //posibleMoves[2].push([key, innerKey]);
+                                    }
+                                    hasPosibleMoves = true;
                                 }
-
+                            }
+                        }
+                        if (hasPosibleMoves === true) {
+                            for (let k = 0; k < posibleMoves.length; k++) {
+                                if (posibleMoves[k].length > 0) {
+                                    const move = posibleMoves[k][Math.floor(Math.random() * posibleMoves[k].length)];
+                                    const aux = material;
+                                    cell.material = dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])].material;
+                                    dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])].material = aux;
+                                    break;
+                                }
                             }
                         }
                     }
-                    for (let k = 0; k < posibleMoves.length; k++) {
-                        if (posibleMoves[k].length > 0) {
-                            let move = posibleMoves[k][Math.floor(Math.random() * posibleMoves[k].length)];
-                            const aux = dynamic.boardArray[i][j];
-                            dynamic.boardArray[i][j] = dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])];
-                            dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])] = aux;
-                            break;
-                        }
-                    }
-
                 }
-                let chance = Math.random();
+                const chance = Math.random();
                 if (chance >= 0.99999) {
-                    dynamic.boardArray[i][j].density += 1;
-                    console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
+                    material.density += 1;
+                    dynamic.controlPanel.updateMaterialShowingStats();
                 }
                 if (chance <= 0.00001) {
-                    dynamic.boardArray[i][j].density -= 1;
-                    console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].density);
+                    material.density -= 1;
+                    dynamic.controlPanel.updateMaterialShowingStats();
                 }
                 if (chance <= 0.50001 && chance >= 0.49999) {
-                    dynamic.boardArray[i][j].moveable = !dynamic.boardArray[i][j].moveable;
-                    console.log(dynamic.boardArray[i][j].color + '\t' + dynamic.boardArray[i][j].moveable);
+                    material.moveable = !material.moveable;
+                    dynamic.controlPanel.updateMaterialShowingStats();
                 }
 
             }
         }
         dynamic.redrawBoard(dynamic);
+        const performance2 = performance.now();
+        console.log('loopTime: ' + (performance2 - performance1));
     }
 }
