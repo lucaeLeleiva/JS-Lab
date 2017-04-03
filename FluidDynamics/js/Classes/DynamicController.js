@@ -43,10 +43,8 @@ class DynamicController {
         }
     }
     redrawBoard(dynamic) {
-        const boardArrayLength = dynamic.boardArray.length;
-        for (let i = 0; i < boardArrayLength; i++) {
-            const boardArrayRowLength = dynamic.boardArray[i].length;
-            for (let j = 0; j < boardArrayRowLength; j++) {
+        for (let i = 0; i < dynamic.boardArray.length; i++) {
+            for (let j = 0; j < dynamic.boardArray[i].length; j++) {
                 if (dynamic.board.children[i].children[j].style.backgroundColor !== dynamic.boardArray[i][j].material.color){
                     dynamic.board.children[i].children[j].style.backgroundColor = dynamic.boardArray[i][j].material.color;
                 }
@@ -59,10 +57,8 @@ class DynamicController {
     }
     continueDynamic(dynamic) {
         const performance1 = performance.now();
-        const boardArrayLength = dynamic.boardArray.length;
-        for (let i = 0; i < boardArrayLength; i+=2) {
-            const boardArrayRowLength = dynamic.boardArray[i].length;
-            for (let j = 0; j < boardArrayRowLength; j+=2) {
+        for (let i = 0; i < dynamic.boardArray.length; i+=2) {
+            for (let j = 0; j < dynamic.boardArray[i].length; j+=2) {
                 const cell = dynamic.boardArray[i][j];
                 const material = cell.material;
                 if (material.moveable) {
@@ -74,28 +70,27 @@ class DynamicController {
                     const neightbours = cell.checkSurrounding(dynamic.boardArray);
                     if (neightbours !== false){
                         let hasPosibleMoves = false;
-                        for (let [key, value] of Object.entries(neightbours)) {
-                            for (let [innerKey, innerValue] of Object.entries(neightbours[key])) {
-                                if (neightbours[key][innerKey] === true) {
-                                    if (parseInt(key) === -1) {
-                                        posibleMoves[0][posibleMoves[0].length] = [key, innerKey];
-                                    } else if (parseInt(key) === 1) {
-                                        posibleMoves[1][posibleMoves[1].length] = [key, innerKey];
-                                    } else if (parseInt(key) === 0) {
-                                        posibleMoves[2][posibleMoves[2].length] = [key, innerKey];
+                        for (let k = 0; k < neightbours.length; k++) {
+                            for (let l = 0; l < neightbours[k].length; l++) {
+                                if (neightbours[k][l] === true) {
+                                    if ((k-1) === -1) {
+                                        posibleMoves[0][posibleMoves[0].length] = [k, l];
+                                    } else if ((k - 1) === 1) {
+                                        posibleMoves[1][posibleMoves[1].length] = [k, l];
+                                    } else if ((k - 1) === 0) {
+                                        posibleMoves[2][posibleMoves[2].length] = [k, l];
                                     }
                                     hasPosibleMoves = true;
-
                                 }
                             }
                         }
                         if (hasPosibleMoves === true) {
-                            for (let k = 0; k < posibleMoves.length; k++) {
-                                if (posibleMoves[k].length > 0) {
-                                    const move = posibleMoves[k][Math.floor(Math.random() * posibleMoves[k].length)];
+                            for (let m = 0; m < posibleMoves.length; m++) {
+                                if (posibleMoves[m].length > 0) {
+                                    const move = posibleMoves[m][Math.floor(Math.random() * posibleMoves[m].length)];
                                     const aux = material;
-                                    cell.material = dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])].material;
-                                    dynamic.boardArray[i + parseInt(move[0])][j + parseInt(move[1])].material = aux;
+                                    cell.material = dynamic.boardArray[i + (move[0]-1)][j + (move[1]-1)].material;
+                                    dynamic.boardArray[i + (move[0]-1)][j + (move[1]-1)].material = aux;
                                     break;
                                 }
                             }
