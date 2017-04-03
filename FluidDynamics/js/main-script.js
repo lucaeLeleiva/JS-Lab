@@ -16,13 +16,27 @@ document.head.appendChild(controlPanelControllerFile);
 let dynamicController;
 let controlPanelController;
 
+function changeDataSize(newValue){
+    const board = document.getElementById('board');
+    board.setAttribute('data-size', newValue);
+}
+function changeRefreshRate(newValue){
+    const board = document.getElementById('board');
+    board.setAttribute('data-refresh', newValue);
+}
+
+function changeMaterialQuantity(newValue){
+    const board = document.getElementById('board');
+    board.setAttribute('data-materials', newValue);
+}
+
 function loadScript() {
     const board = document.getElementById('board');
     const controlPanelStatsDiv = document.getElementById('stats-shower');
-    const refreshTime = 100;
-    const cellSize = 3;
+    const refreshTime = board.getAttribute('data-refresh');
+    const cellSize = 500 / board.getAttribute('data-size');
     let materials = [];
-    const materialQuantity = 10;
+    const materialQuantity = board.getAttribute('data-materials');
     for (let i = 0; i < materialQuantity; i++){
         const material = new Material(
             '#' + Math.floor(Math.random() * 16777215).toString(16),

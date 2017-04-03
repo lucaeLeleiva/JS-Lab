@@ -8,8 +8,11 @@
 
 <body>
 
-    <div id="board" data-size="200"></div>
+    <div id="board" data-size="150" data-refresh="1" data-materials="10"></div>
     <div id="control-panel" style="float: left;margin: 5px;">
+        <label>Board size</label><input type="number" onchange="changeDataSize(this.value)" value="" /><br />
+        <label>Refresh rate</label><input type="number" onchange="changeRefreshRate(this.value)" value="" /><br />
+        <label>Material quantities</label><input type="number" onchange="changeMaterialQuantity(this.value)" value="" /><br />
         <input type="button" onclick="dynamicController.pauseDynamic()" value="Pausar" />
         <input type="button" onclick="dynamicController.startDynamic()" value="Resumir" />
         <input type="button" onclick="loadScript()" value="Reiniciar" />

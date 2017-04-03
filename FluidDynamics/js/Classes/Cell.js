@@ -26,33 +26,32 @@ class Cell {
         this.dom.style.backgroundColor = material.color;
     }
     checkSurrounding(boardArray) {
-        
-        let arrayToReturn = {
-            '-1': { '-1': false, '0': false, '+1': false, },
-            '0': { '-1': false, '+1': false, },
-            '+1': { '-1': false, '0': false, '+1': false, },
-        };
+        let arrayToReturn = [
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ];
         let hasMoves = false;
-        for (let[row, value] of Object.entries(arrayToReturn)) {
-            for (let [column, innerValue] of Object.entries(arrayToReturn[row])) {
+        for(let i = 0; i < arrayToReturn.length; i++){
+            for(let j = 0; j < arrayToReturn[i].length; j++){
                 const coordinateX = this.coordinates.x;
                 const coordinateY = this.coordinates.y;
-                if (boardArray[coordinateX + parseInt(row)] !== undefined &&
-                    boardArray[coordinateX + parseInt(row)][coordinateY + parseInt(column)] !== undefined) {
-                    let neigthbour = boardArray[coordinateX + parseInt(row)][coordinateY + parseInt(column)];
+                if (boardArray[coordinateX + (i - 1)] !== undefined &&
+                    boardArray[coordinateX + (i - 1)][coordinateY + (j - 1)] !== undefined) {
+                    let neigthbour = boardArray[coordinateX + (i - 1)][coordinateY + (j - 1)];
                     if (neigthbour.material !== this.material && neigthbour.material.moveable) {
-                        if (parseInt(row) < 0) {
+                        if ((i - 1) < 0) {
                             if (this.material.isDenser(neigthbour.material) === true) {
-                                arrayToReturn[row][column] = true;
+                                arrayToReturn[i][j] = true;
                                 hasMoves = true;
                             }
-                        } else if (parseInt(row) > 0) {
+                        } else if ((i - 1) > 0) {
                             if (this.material.isDenser(neigthbour.material) === false) {
-                                arrayToReturn[row][column] = true;
+                                arrayToReturn[i][j] = true;
                                 hasMoves = true;
                             }
                         } else {
-                            arrayToReturn[row][column] = true;
+                            arrayToReturn[i][j] = true;
                             hasMoves = true;
                         }
 
