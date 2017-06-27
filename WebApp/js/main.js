@@ -1,4 +1,4 @@
-(function (window) {
+(function(window) {
     'use strict';
 
     window.webapp = window.webapp || {};
@@ -7,17 +7,18 @@
             isReady: false,
             neededScript: [
                 './js/menu.js',
-				'./js/card.js',
+                './js/card.js',
             ],
-            addNeededScripts: function () {
+            addNeededScripts: function() {
                 for (let i = 0; i < main.neededScript.length; i++) {
                     let scriptTag = document.createElement('script');
                     scriptTag.src = main.neededScript[i];
                     document.head.appendChild(scriptTag);
                 }
             },
-            inicializar: function () {
+            inicializar: function() {
                 main.addNeededScripts();
+                window.clearInterval(main.isReady);
                 main.isReady = true;
             },
         };
@@ -27,22 +28,22 @@
     if (typeof window.webapp.isReady === 'undefined') {
         const isReady = {
             interval: 0,
-            checkReady: function () {
+            checkReady: function() {
                 let isReady = true;
                 for (let key in window.webapp) {
-                    if(window.webapp[key].isReady === false){
+                    if (window.webapp[key].isReady === false) {
                         isReady = window.webapp[key].isReady;
                     }
                 }
-                if(isReady === true){
+                if (isReady === true) {
                     document.body.classList.remove('loader');
                     window.clearInterval(isReady.interval);
                 }
 
             },
-            inicializar: function () {
+            inicializar: function() {
                 isReady.interval = window.setInterval(isReady.checkReady, 10);
-    		},
+            },
         };
 
         window.webapp.isReady = isReady;
